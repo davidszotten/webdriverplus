@@ -221,6 +221,13 @@ class WebElementSet(SelectorMixin, OrderedSet):
             ret |= elem.siblings()
         return ret.filter(*args, **kwargs)
 
+     def visible(self, *args, **kwargs):
+         ret = self._empty()
+         for elm in self:
+             if elm.is_displayed:
+                 ret.add(elm)
+         return ret.filter(*args, **kwargs)
+
     def __getitem__(self, key):
         if isinstance(key, slice):
             elems = list(self)[key]
