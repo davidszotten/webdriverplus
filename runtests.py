@@ -4,6 +4,8 @@
 import sys
 import unittest
 
+from selenium.webdriver.common.keys import Keys
+
 import webdriverplus
 
 # WebElements as set
@@ -527,10 +529,12 @@ class ActionTests(WebDriverPlusTests):
         self.assertEquals(self.driver.find(id='msg').text, 'double click')
 
     def test_context_click(self):
-        js = "document.getElementById('msg').innerHTML = event.button"
-        snippet = "<div id='msg'></div><a onclick=\"%s\">here</a>" % js
+        js = "document.getElementById('msg').innerHTML = event.button;"
+        snippet = "<div id='msg'></div><a oncontextmenu=\"%s\">here</a>" % js
         self.driver.open(snippet).find('a').context_click()
         self.assertEquals(self.driver.find(id='msg').text, '2')
+        # context menu stays open, so close it
+        self.driver.find('body').send_keys(Keys.ESCAPE)
 
     def test_click_and_hold(self):
         js = "document.getElementById('msg').innerHTML = 'mouse down'"
