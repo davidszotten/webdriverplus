@@ -3,6 +3,7 @@
 
 import sys
 import unittest
+import warnings
 
 import webdriverplus
 
@@ -430,14 +431,14 @@ class FormInspectionTests(WebDriverPlusTests):
 
     def test_is_selected(self):
         elem = self.driver.find('form')
-        self.assertEquals(elem.find(text='Walk').is_selected, True)
-        self.assertEquals(elem.find(text='Cycle').is_selected, False)
-        self.assertEquals(elem.find(text='Drive').is_selected, False)
+        self.assertEquals(elem.find(text='Walk').is_selected(), True)
+        self.assertEquals(elem.find(text='Cycle').is_selected(), False)
+        self.assertEquals(elem.find(text='Drive').is_selected(), False)
 
     def test_is_checked(self):
         elem = self.driver.find('form')
-        self.assertEquals(elem.find(value='peanuts').is_checked, False)
-        self.assertEquals(elem.find(value='jam').is_checked, True)
+        self.assertEquals(elem.find(value='peanuts').is_checked(), False)
+        self.assertEquals(elem.find(value='jam').is_checked(), True)
 
 
 class ValueTests(WebDriverPlusTests):
@@ -605,6 +606,72 @@ class NoWaitTests(WebDriverPlusTests):
     def test_element_added_after_load_not_found(self):
         nodes = self.driver.find('p', text_contains='Hello World')
         self.assertEquals(len(nodes), 0)
+
+
+class ClassWithDeprecations(object):
+    @webdriverplus.deprecation.deprecated_property
+    def true(self):
+        return True
+
+    @webdriverplus.deprecation.deprecated_property
+    def false(self):
+        return False
+
+
+class DeprecationWarningTests(unittest.TestCase):
+    def setUp(self):
+        webdriverplus.deprecation.WARN_ONLY = True
+
+    def test_calling(self):
+        instance = ClassWithDeprecations()
+        with warnings.catch_warnings(record=True) as caught:
+            self.assertTrue(instance.true())
+            self.assertEquals(instance.true(), True)
+            self.assertFalse(instance.false())
+            self.assertEquals(instance.false(), False)
+        self.assertEqual(len(caught), 0)
+
+    def test_eq_prop(self):
+        instance = ClassWithDeprecations()
+        with warnings.catch_warnings(record=True) as caught:
+            self.assertEquals(instance.false, False)
+        self.assertEqual(len(caught), 1)
+
+    def test_bool_prop(self):
+        instance = ClassWithDeprecations()
+        with warnings.catch_warnings(record=True) as caught:
+            self.assertTrue(instance.true)
+        self.assertEqual(len(caught), 1)
+
+
+class DeprecationErrorTests(unittest.TestCase):
+    def setUp(self):
+        webdriverplus.deprecation.WARN_ONLY = False
+
+    def test_calling(self):
+        instance = ClassWithDeprecations()
+        self.assertTrue(instance.true())
+        self.assertEquals(instance.true(), True)
+        self.assertFalse(instance.false())
+        self.assertEquals(instance.false(), False)
+
+    def test_eq_prop(self):
+        instance = ClassWithDeprecations()
+        self.assertRaises(
+            webdriverplus.deprecation.DeprecatedPropertyError,
+            lambda: not instance.false
+        )
+
+    def test_bool_prop(self):
+        instance = ClassWithDeprecations()
+        self.assertRaises(
+            webdriverplus.deprecation.DeprecatedPropertyError,
+            lambda: instance.true == True
+        )
+        self.assertRaises(
+            webdriverplus.deprecation.DeprecatedPropertyError,
+            lambda: instance.true != False
+        )
 
 
 if __name__ == '__main__':

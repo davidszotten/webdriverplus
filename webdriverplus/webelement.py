@@ -2,6 +2,7 @@ from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.remote.webelement import WebElement as _WebElement
 #from selenium.webdriver.common.action_chains import ActionChains
 
+from webdriverplus.deprecation import deprecated_property
 from webdriverplus.selectors import SelectorMixin
 from webdriverplus.utils import get_terminal_size
 from webdriverplus.wrappers import Style, Attributes, Size, Location
@@ -155,19 +156,19 @@ class WebElement(SelectorMixin, _WebElement):
     def value(self):
         return self.get_attribute('value')
 
-    @property
+    @deprecated_property
     def is_checked(self):
         return self.get_attribute('checked') is not None
 
-    @property
+    @deprecated_property
     def is_selected(self):
         return super(WebElement, self).is_selected()
 
-    @property
+    @deprecated_property
     def is_displayed(self):
         return super(WebElement, self).is_displayed()
 
-    @property
+    @deprecated_property
     def is_enabled(self):
         return super(WebElement, self).is_enabled()
 
@@ -238,11 +239,11 @@ class WebElement(SelectorMixin, _WebElement):
         #ActionChains(self._parent).move_to_element(self).perform()
 
     def check(self):
-        if not self.is_checked:
+        if not self.is_checked():
             self.click()
 
     def uncheck(self):
-        if self.is_checked:
+        if self.is_checked():
             self.click()
 
     def __repr__(self):
